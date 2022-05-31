@@ -1,0 +1,18 @@
+pipeline:
+  build:
+    image: docker.io/alpine:3.15
+    commands:
+      - apk add nodejs npm go make rsync openssh-client-default
+      - GOOS=linux GOARCH=amd64 LDFLAGS="-linkmode external -extldflags '-static' $LDFLAGS" TAGS="bindata sqlite sqlite_unlock_notify" make build
+
+      - eval $(ssh-agent -s)
+      - echo "$${SSH_KEY}" | tr -d '\r' | ssh-add -
+      - mkdir -p ~/.ssh
+      - echo "[nulo.in]:420,[186.136.121.7]:420 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGPkgRVWYcVcgjI0xAjDgZQsYuXU9edcya8zna01ibyUMlfKHIMD9yOoq0R+fQPTCqwiol/2tKMPJ2hlKshc+H8=" > ~/.ssh/known_hosts
+      - rsync --rsh='ssh -p420' --progress --chmod=755 gitea diablo@nulo.in:gitea
+      - ssh -p420 diablo@nulo.in 'doas mv ~diablo/gitea /usr/local/bin/gitea && doas sv restart gitea'
+    when:
+      branch: gitea.nulo.in
+      event: push
+    secrets:
+      - ssh_key
