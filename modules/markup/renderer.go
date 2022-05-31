@@ -225,13 +225,5 @@ func IsMarkupFile(name, markup string) bool {
 // Note that the '.' should be provided in ext, e.g ".md"
 func IsReadmeFile(name string, ext ...string) bool {
 	name = strings.ToLower(name)
-	if len(ext) > 0 {
-		return name == "readme"+ext[0]
-	}
-	if len(name) < 6 {
-		return false
-	} else if len(name) == 6 {
-		return name == "readme"
-	}
-	return name[:7] == "readme."
+	return name == "readme" || strings.Index(name, "readme.") == 0 || strings.Index(name, ".readme.") == 0
 }
